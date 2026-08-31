@@ -1,0 +1,35 @@
+name: Renovate
+
+on:
+  schedule:
+    # 18:44 UTC. The fleet staggers one organisation per hour, minutes stepping
+    # 00/11/22/33/44, so no two runners ask the same token for its five thousand
+    # requests at once. 18:44 is the next unused slot in that walk: hours 00-17
+    # are full at :44 and hours 18-23 hold nothing there. It is also outside
+    # 05-10 UTC, where thirty runners already sit.
+    - cron: '44 18 * * *'
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: Renovate log level
+        default: info
+
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run Renovate
+        uses: renovatebot/github-action@v46.2.5
+        with:
+          configurationFile: config.js
+          token: ${{ secrets.RENOVATE_TOKEN }}
+        env:
+          LOG_LEVEL: ${{ inputs.logLevel || 'info' }}
